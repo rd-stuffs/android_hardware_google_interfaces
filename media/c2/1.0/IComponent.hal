@@ -111,6 +111,25 @@ interface IComponent extends IComponentInterface {
     drain(bool withEos) generates (Status status);
 
     /**
+     * Starts using a surface for output.
+     *
+     * @param surface A surface to use for codec output.
+     * @return status Status of the call, which may be
+     *   - OK        - The operation completed successfully.
+     *   - CANNOT_DO - The component does not support an output surface.
+     *   - REFUSED   - The output surface cannot be accessed.
+     *   - TIMED_OUT - The component could not be connected within the time
+     *                 limit. (unexpected)
+     *   - CORRUPTED - Some unknown error prevented connecting the component.
+     *                 (unexpected)
+     */
+    setOutputSurface(
+            IGraphicBufferProducer surface
+        ) generates (
+            Status status
+        );
+
+    /**
      * Starts using a persistent input surface for a component.
      *
      * The component must be in running state.
