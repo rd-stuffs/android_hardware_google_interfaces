@@ -109,8 +109,34 @@ struct ParamDescriptor {
     ParamIndex index;
 
     enum Attrib : uint32_t {
-        IS_REQUIRED   = 1u << 0,
-        IS_PERSISTENT = 1u << 1,
+        /**
+         * Parameter is required to be specified.
+         */
+        REQUIRED   = 1u << 0,
+        /**
+         * Parameter retains its value.
+         */
+        PERSISTENT = 1u << 1,
+        /**
+         * Parameter is strict.
+         */
+        STRICT     = 1u << 2,
+        /**
+         * Parameter is publicly read-only.
+         */
+        READ_ONLY  = 1u << 3,
+        /**
+         * Parameter must not be visible to clients.
+         */
+        HIDDEN     = 1u << 4,
+        /**
+         * Parameter must not be used by framework (other than testing).
+         */
+        INTERNAL   = 1u << 5,
+        /**
+         * Parameter is publicly constant (hence read-only).
+         */
+        CONST      = 1u << 6,
     };
     /** Parameter attributes */
     bitfield<Attrib> attrib;
