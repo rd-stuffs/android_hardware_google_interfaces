@@ -1,0 +1,111 @@
+/*
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package hardware.google.pixelstats@1.0;
+
+
+/**
+ * Reports specific hardware reliabilty events to statsd.
+ *
+ * This HAL allows the logging of specific atoms to statsd from client
+ * code, via a server that translates between HAL calls and statsd.
+ */
+interface IPixelStats {
+
+    /**
+     * Report plugging and unplugging of devices to the USB-C connector.
+     * @param connected false if the connector was just disconnected.
+     *                  true if the connector was just connected.
+     */
+    reportUsbConnectorStateChanged(bool connected);
+
+    /**
+     * Report the detected speaker impedance value.
+     * @param speakerLocation a vendor-specific value identifying a
+     *                        particular speaker on the device.
+     *                        This value is opaque to the server, it must
+     *                        not try to interpret any meaning to this location.
+     * @param milliOhms       the detected impedance in milliOhms.
+     */
+    reportSpeakerImpedence(int32_t speakerLocation, int32_t milliOhms);
+
+    /** HardwareType for reportHardwareFailed */
+    enum HardwareType : uint32_t {
+        UNKNOWN = 0,
+        MICROPHONE = 1,
+        CODEC = 2,
+        SPEAKER = 3,
+        FINGERPRINT = 4,
+    };
+    /**
+     * ErrorCodes for reportHardwareFailed.
+     * ErrorCode interpretation depends on the hardwareType parameter.
+     * Values prefixed by different hardwareTypes overlap.
+     * UNKNOWN should be used unless a more specific error code exists.
+     */
+    enum HardwareErrorCode : uint32_t {
+        UNKNOWN = 0,
+        SPEAKER_HIGH_Z = 1,
+        SPEAKER_SHORT = 2,
+        FINGERPRINT_SENSOR_BROKEN = 1,
+        FINGERPRINT_TOO_MANY_DEAD_PIXELS = 2,
+    };
+    /**
+     * Report the detected failure of a hardware component.
+     * @param hardwareType the type of hardware component that failed.
+     * @param hardwareLocation a vendor-specific value indentifying a particular
+     *                         instance of the given hardwareType.  Opaque id,
+     *                         not to be interpreted by server code.
+     * @param failureCode a code identifying the failure mode of the hardware
+     *                    component.  Depends on hardwareType.
+     */
+    reportHardwareFailed(int32_t hardwareType, int32_t hardwareLocation, HardwareErrorCode errorCode);
+
+
+    /**
+     * Report the detection of a physical drop event, as detected by
+     * accelerometers.
+     * @param confidencePctg   percentage confidence that a drop occured.
+     *                         Heuristic.
+     * @param accelPeak        peak detected acceleration, in units of 1/1000ths
+     *                         of a g.
+     * @param freefallDuration Duration of estimated freefall, in ms.
+     */
+    reportPhysicalDropDetected(int32_t confidencePctg, int32_t accelPeak, int32_t freefallDuration);
+
+    /**
+     * Report bucketed battery charge cycles.
+     *
+     * Each bucket represents cycles of the battery past a given charge point.
+     * For example, bucket 1 is the lowest 1/8th of the battery, and bucket 8
+     * is 100%.
+     * @param bucket1 the number of times charged past the lowest charge bucket.
+     */
+    reportChargeCycles(int32_t[8] buckets);
+
+    /**
+     * Report USB Devices attached to the system.
+     * Reports the VID, PID, and presence of selected USB Device Class
+     * interfaces of USB devices attached to the system.
+     * @param vid USB Vendor ID
+     * @param pid USB Product ID
+     * @param hasAudio True if the device has an Audio Class interface
+     * @param hasHid True if the device has a Human Interface Class interface.
+     * @param hasStorage True if the device has a USB Mass Storage interface.
+     */
+    reportUsbDeviceAttached(int32_t vid, int32_t pid, bool hasAudio, bool hasHid, bool hasStorage);
+};
+

@@ -1,0 +1,18 @@
+cc_binary {
+    name: "hardware.google.pixelstats@1.0-service",
+    relative_install_path: "hw",
+    init_rc: ["hardware.google.pixelstats.rc"],
+    srcs: [
+        "service.cpp",
+        "PixelStats.cpp",
+    ],
+    shared_libs: [
+        "libbase",
+        "libhidlbase",
+        "libhidltransport",
+        "liblog",
+        "libstatslog",
+        "libutils",
+        "hardware.google.pixelstats@1.0",
+    ],
+}
