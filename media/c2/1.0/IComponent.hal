@@ -113,6 +113,8 @@ interface IComponent extends IComponentInterface {
     /**
      * Starts using a surface for output.
      *
+     * @param blockPoolId The id of the BlockPool to be associated with the
+     * output surface.
      * @param surface A surface to use for codec output.
      * @return status Status of the call, which may be
      *   - OK        - The operation completed successfully.
@@ -124,6 +126,7 @@ interface IComponent extends IComponentInterface {
      *                 (unexpected)
      */
     setOutputSurface(
+            uint64_t blockPoolId,
             IGraphicBufferProducer surface
         ) generates (
             Status status
