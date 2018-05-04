@@ -22,7 +22,6 @@ import android.hardware.media.omx@1.0::IGraphicBufferSource;
 import IConfigurable;
 import IComponentInterface;
 import IComponentListener;
-import IInputSurface;
 
 /**
  * Interface for a Codec 2.0 component corresponding to API level 1.0 or
@@ -133,26 +132,6 @@ interface IComponent extends IComponentInterface {
         );
 
     /**
-     * Starts using a persistent input surface for a component.
-     *
-     * The component must be in running state.
-     *
-     * @param surface A persistent input surface to use for codec input.
-     * @return status Status of the call, which may be
-     *   - OK        - The operation completed successfully.
-     *   - CANNOT_DO - The component does not support an input surface.
-     *   - BAD_STATE - Component is not in running state.
-     *   - DUPLICATE - The component is already connected to an input surface.
-     *   - REFUSED   - The input surface is already in use.
-     *   - NO_MEMORY - Not enough memory to start the component.
-     *   - TIMED_OUT - The component could not be connected within the time
-     *                 limit. (unexpected)
-     *   - CORRUPTED - Some unknown error prevented connecting the component.
-     *                 (unexpected)
-     */
-    connectToInputSurface(IInputSurface surface) generates (Status status);
-
-    /**
      * Starts using a persistent OMX input surface for a component.
      *
      * The component must be in running state.
@@ -218,6 +197,23 @@ interface IComponent extends IComponentInterface {
         uint64_t blockPoolId,
         IConfigurable configurable
     );
+
+    /**
+     * Destroys a local block pool previously created by createBlockPool().
+     *
+     * This call must return within 100 msec.
+     *
+     * @param blockPoolId The block pool id previously returned by
+     *      createBlockPool().
+     * @return status Status of the call, which may be
+     *   - OK        - The operation completed successfully.
+     *   - NOT_FOUND - The supplied blockPoolId is not valid.
+     *   - TIMED_OUT - The pool could not be destroyedwithin the time limit.
+     *                 (unexpected)
+     *   - CORRUPTED - Some unknown error prevented destruction of the pool.
+     *                 (unexpected)
+     */
+    destroyBlockPool(uint64_t blockPoolId) generates (Status status);
 
     // STATE CHANGE METHODS
     // =========================================================================
