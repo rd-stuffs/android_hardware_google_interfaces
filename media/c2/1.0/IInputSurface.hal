@@ -19,6 +19,7 @@ package hardware.google.media.c2@1.0;
 import android.hardware.graphics.bufferqueue@1.0::IGraphicBufferProducer;
 
 import IConfigurable;
+import IComponent;
 import IInputSurfaceConnection;
 
 /**
@@ -43,7 +44,7 @@ interface IInputSurface extends IGraphicBufferProducer {
      *     from the component.
      */
     connectToComponent(
-            interface component
+            IComponent component
         ) generates (
             Status status,
             IInputSurfaceConnection connection
