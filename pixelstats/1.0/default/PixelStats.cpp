@@ -2,7 +2,6 @@
 
 #define LOG_TAG "pixelstats-system"
 #include <log/log.h>
-
 #include <metricslogger/metrics_logger.h>
 
 namespace hardware {
@@ -12,6 +11,9 @@ namespace V1_0 {
 namespace implementation {
 
 using namespace android::metricslogger;
+
+PixelStats::PixelStats()
+    :limiter_(kDailyRatelimit) {}
 
 void loggerAddFields(ComplexEventLogger* logger) {
     logger->Record();
@@ -33,31 +35,47 @@ void logIntAction(int32_t category, Args... args) {
 
 // Methods from ::hardware::google::pixelstats::V1_0::IPixelStats follow.
 Return<void> PixelStats::reportUsbConnectorConnected() {
+    // Ratelimit to max 20 / 24hrs (expected 0/24hrs)
+    if (rateLimit(android::metricslogger::ACTION_USB_CONNECTOR_CONNECTED, 20))
+        return Void();
     logIntAction(android::metricslogger::ACTION_USB_CONNECTOR_CONNECTED);
     return Void();
 }
 
-Return<void> PixelStats::reportUsbConnectorDisconnected(int32_t duration_millis) {
+Return<void> PixelStats::reportUsbConnectorDisconnected(int32_t durationMillis) {
+    // Ratelimit to max 20 / 24hrs (expected 0/24hrs)
+    if (rateLimit(android::metricslogger::ACTION_USB_CONNECTOR_DISCONNECTED, 20))
+        return Void();
     logIntAction(android::metricslogger::ACTION_USB_CONNECTOR_DISCONNECTED,
-                 android::metricslogger::FIELD_DURATION_MILLIS, duration_millis);
+                 android::metricslogger::FIELD_DURATION_MILLIS, durationMillis);
     return Void();
 }
 
 Return<void> PixelStats::reportUsbAudioConnected(int32_t vid, int32_t pid) {
+    // Ratelimit to max 20 / 24hrs (expected 0/24hrs)
+    if (rateLimit(android::metricslogger::ACTION_USB_AUDIO_CONNECTED, 20))
+        return Void();
     logIntAction(android::metricslogger::ACTION_USB_AUDIO_CONNECTED,
                  android::metricslogger::FIELD_USB_AUDIO_VIDPID, (vid << 16) | pid);
     return Void();
 }
 
 Return<void> PixelStats::reportUsbAudioDisconnected(int32_t vid, int32_t pid,
-                                                    int32_t duration_millis) {
+                                                    int32_t durationMillis) {
+    // Ratelimit to max 20 / 24hrs (expected 0/24hrs)
+    if (rateLimit(android::metricslogger::ACTION_USB_AUDIO_DISCONNECTED, 20))
+        return Void();
     logIntAction(android::metricslogger::ACTION_USB_AUDIO_DISCONNECTED, FIELD_USB_AUDIO_VIDPID,
                     (vid << 16) | pid, android::metricslogger::FIELD_DURATION_MILLIS,
-                    duration_millis);
+                    durationMillis);
     return Void();
 }
 
 Return<void> PixelStats::reportSpeakerImpedance(int32_t speakerLocation, int32_t milliOhms) {
+    // Ratelimit to max 2 / 24hrs (expected 1/24hrs)
+    if (rateLimit(android::metricslogger::ACTION_SPEAKER_IMPEDANCE, 2))
+        return Void();
+
     logIntAction(android::metricslogger::ACTION_SPEAKER_IMPEDANCE, FIELD_SPEAKER_LOCATION,
                     speakerLocation, FIELD_SPEAKER_IMPEDANCE_MILLIOHMS, milliOhms);
     return Void();
@@ -102,6 +120,9 @@ static android::metricslogger::HardwareFailureCode toMetricsLoggerHardwareFailur
 
 Return<void> PixelStats::reportHardwareFailed(HardwareType hardwareType, int32_t hardwareLocation,
                                               HardwareErrorCode errorCode) {
+    // Ratelimit to max 15 / 24hrs (expected 0/24hrs)
+    if (rateLimit(android::metricslogger::ACTION_HARDWARE_FAILED, 15))
+        return Void();
 
     ComplexEventLogger logger(ACTION_HARDWARE_FAILED);
     logger.AddTaggedData(LOGBUILDER_TYPE, TYPE_ACTION);
@@ -114,6 +135,10 @@ Return<void> PixelStats::reportHardwareFailed(HardwareType hardwareType, int32_t
 
 Return<void> PixelStats::reportPhysicalDropDetected(int32_t confidencePctg, int32_t accelPeak,
                                                     int32_t freefallDurationMs) {
+    // Ratelimit to max 10 / 24hrs (expected 0/24hrs)
+    if (rateLimit(android::metricslogger::ACTION_PHYSICAL_DROP, 10))
+        return Void();
+
     logIntAction(ACTION_PHYSICAL_DROP, FIELD_CONFIDENCE_PERCENT, confidencePctg,
                  FIELD_ACCEL_MILLI_G, accelPeak,
                  FIELD_DURATION_MILLIS, freefallDurationMs);
@@ -121,6 +146,9 @@ Return<void> PixelStats::reportPhysicalDropDetected(int32_t confidencePctg, int3
 }
 
 Return<void> PixelStats::reportChargeCycles(const hidl_string& buckets) {
+    // Ratelimit to max 2 / 24hrs (expected 1/24hrs)
+    if (rateLimit(android::metricslogger::ACTION_BATTERY_CHARGE_CYCLES, 2))
+        return Void();
     LogMultiAction(ACTION_BATTERY_CHARGE_CYCLES, FIELD_BATTERY_CHARGE_CYCLES, buckets);
     return Void();
 }
@@ -142,12 +170,18 @@ static android::metricslogger::IoOperation toMetricsLoggerIoOperation(IPixelStat
 }
 
 Return<void> PixelStats::reportSlowIo(IoOperation operation, int32_t count) {
-    logIntAction(ACTION_SLOW_IO, FIELD_IO_OPERATION, toMetricsLoggerIoOperation(operation),
-                    FIELD_COUNT, count);
+    // Ratelimit to max 2 per 24hrs
+    if (rateLimit(android::metricslogger::ACTION_SLOW_IO, 2))
+        return Void();
+    logIntAction(ACTION_SLOW_IO, FIELD_IO_OPERATION_TYPE, toMetricsLoggerIoOperation(operation),
+                    FIELD_IO_OPERATION_COUNT, count);
     return Void();
 }
 
 Return<void> PixelStats::reportBatteryHealthSnapshot(const BatteryHealthSnapshotArgs& args) {
+    // Ratelimit to max 2 per 24hrs
+    if (rateLimit(android::metricslogger::ACTION_BATTERY_HEALTH, 2))
+        return Void();
     ComplexEventLogger logger(ACTION_BATTERY_HEALTH);
     logger.AddTaggedData(LOGBUILDER_TYPE, TYPE_ACTION);
     logger.AddTaggedData(FIELD_BATTERY_HEALTH_SNAPSHOT_TYPE, (int32_t)args.type);
@@ -158,6 +192,14 @@ Return<void> PixelStats::reportBatteryHealthSnapshot(const BatteryHealthSnapshot
     logger.AddTaggedData(FIELD_BATTERY_RESISTANCE_UOHMS, args.resistanceMicroOhm);
     logger.AddTaggedData(FIELD_END_BATTERY_PERCENT, args.levelPercent);
     return Void();
+}
+
+bool PixelStats::rateLimit(int action, int limit) {
+    if (limiter_.RateLimit(action, limit)) {
+        ALOGE("Rate limited action %d\n", action);
+        return true;
+    }
+    return false;
 }
 
 }  // namespace implementation

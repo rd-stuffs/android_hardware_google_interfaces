@@ -1,9 +1,27 @@
+/*
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #ifndef HARDWARE_GOOGLE_PIXELSTATS_V1_0_PIXELSTATS_H
 #define HARDWARE_GOOGLE_PIXELSTATS_V1_0_PIXELSTATS_H
 
 #include <hardware/google/pixelstats/1.0/IPixelStats.h>
 #include <hidl/MQDescriptor.h>
 #include <hidl/Status.h>
+
+#include "RateLimiter.h"
 
 namespace hardware {
 namespace google {
@@ -19,7 +37,10 @@ using ::android::hardware::hidl_vec;
 using ::android::hardware::Return;
 using ::android::hardware::Void;
 
+
 struct PixelStats : public IPixelStats {
+    PixelStats();
+
     // Methods from ::hardware::google::pixelstats::V1_0::IPixelStats follow.
     Return<void> reportUsbConnectorConnected() override;
     Return<void> reportUsbConnectorDisconnected(int32_t duration_millis) override;
@@ -35,7 +56,14 @@ struct PixelStats : public IPixelStats {
     Return<void> reportBatteryHealthSnapshot(const BatteryHealthSnapshotArgs& args) override;
     Return<void> reportSlowIo(IoOperation operation, int32_t count) override;
 
-    // Methods from ::android::hidl::base::V1_0::IBase follow.
+  private:
+    // At most 150 events per day by default.
+    static constexpr int32_t kDailyRatelimit = 150;
+
+    // each action provides its own per-limit daily rate limit.
+    bool rateLimit(int action, int actionLimit);
+
+    RateLimiter limiter_;
 };
 
 }  // namespace implementation
