@@ -5,14 +5,27 @@ cc_binary {
     srcs: [
         "service.cpp",
         "PixelStats.cpp",
+        "RateLimiter.cpp",
     ],
     shared_libs: [
         "libbase",
         "libhidlbase",
         "libhidltransport",
         "liblog",
-        "libstatslog",
+        "libmetricslogger",
         "libutils",
         "hardware.google.pixelstats@1.0",
+    ],
+}
+
+cc_test_host {
+    name: "RateLimiter_test",
+    defaults: ["fluoride_defaults"],
+    srcs: [
+        "RateLimiter.cpp",
+        "RateLimiterTest.cpp",
+    ],
+    static_libs: [
+        "libutils",
     ],
 }
