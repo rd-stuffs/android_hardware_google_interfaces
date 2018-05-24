@@ -26,6 +26,7 @@
 using hardware::google::pixelstats::V1_0::implementation::PixelStats;
 
 int main(int /* argc */, char* /* argv */[]) {
+    ::android::hardware::configureRpcThreadpool(1, true /*willJoinThreadpool*/);
     android::sp<PixelStats> ps = new PixelStats();
     if (ps->registerAsService() != android::OK) {
         LOG(ERROR) << "error starting pixelstats";
