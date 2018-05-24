@@ -25,11 +25,11 @@
 
 using hardware::google::pixelstats::V1_0::implementation::PixelStats;
 
-int main(int /* argc */, char* /* argv */ []) {
-    PixelStats *ps = new PixelStats();
+int main(int /* argc */, char* /* argv */[]) {
+    android::sp<PixelStats> ps = new PixelStats();
     if (ps->registerAsService() != android::OK) {
-      LOG(ERROR) << "error starting pixelstats";
-      return 2;
+        LOG(ERROR) << "error starting pixelstats";
+        return 2;
     }
     ::android::hardware::joinRpcThreadpool();
     return 1;
