@@ -176,4 +176,10 @@ interface IPixelStats {
      * @param count The number of slow IO operations of this type over 24hrs.
      */
     reportSlowIo(IoOperation operation, int32_t count);
+
+    /**
+     * Report a shutdown event caused by low battery.
+     * @param voltageMicroV last recorded battery voltage prior to shutdown.
+     */
+    reportBatteryCausedShutdown(int32_t voltageMicroV);
 };
