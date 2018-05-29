@@ -194,6 +194,14 @@ Return<void> PixelStats::reportBatteryHealthSnapshot(const BatteryHealthSnapshot
     return Void();
 }
 
+Return<void> PixelStats::reportBatteryCausedShutdown(int32_t voltageMicroV) {
+    // Ratelimit to max 5 per 24hrs
+    if (rateLimit(android::metricslogger::ACTION_BATTERY_CAUSED_SHUTDOWN, 5))
+        return Void();
+    logIntAction(ACTION_BATTERY_CAUSED_SHUTDOWN, FIELD_BATTERY_VOLTAGE_UV, voltageMicroV);
+    return Void();
+}
+
 bool PixelStats::rateLimit(int action, int limit) {
     if (limiter_.RateLimit(action, limit)) {
         ALOGE("Rate limited action %d\n", action);
