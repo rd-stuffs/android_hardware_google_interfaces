@@ -124,12 +124,10 @@ Return<void> PixelStats::reportHardwareFailed(HardwareType hardwareType, int32_t
     if (rateLimit(android::metricslogger::ACTION_HARDWARE_FAILED, 15))
         return Void();
 
-    ComplexEventLogger logger(ACTION_HARDWARE_FAILED);
-    logger.AddTaggedData(LOGBUILDER_TYPE, TYPE_ACTION);
-    logger.AddTaggedData(FIELD_HARDWARE_TYPE, toMetricsLoggerHardwareType(hardwareType));
-    logger.AddTaggedData(FIELD_HARDWARE_LOCATION, hardwareLocation);
-    logger.AddTaggedData(FIELD_HARDWARE_FAILURE_CODE, toMetricsLoggerHardwareFailure(errorCode));
-    logger.Record();
+    logIntAction(ACTION_HARDWARE_FAILED,
+                 FIELD_HARDWARE_TYPE, toMetricsLoggerHardwareType(hardwareType),
+                 FIELD_HARDWARE_LOCATION, hardwareLocation,
+                 FIELD_HARDWARE_FAILURE_CODE, toMetricsLoggerHardwareFailure(errorCode));
     return Void();
 }
 
@@ -182,15 +180,22 @@ Return<void> PixelStats::reportBatteryHealthSnapshot(const BatteryHealthSnapshot
     // Ratelimit to max 2 per 24hrs
     if (rateLimit(android::metricslogger::ACTION_BATTERY_HEALTH, 2))
         return Void();
-    ComplexEventLogger logger(ACTION_BATTERY_HEALTH);
-    logger.AddTaggedData(LOGBUILDER_TYPE, TYPE_ACTION);
-    logger.AddTaggedData(FIELD_BATTERY_HEALTH_SNAPSHOT_TYPE, (int32_t)args.type);
-    logger.AddTaggedData(FIELD_BATTERY_TEMPERATURE_DECI_C, args.temperatureDeciC);
-    logger.AddTaggedData(FIELD_BATTERY_VOLTAGE_UV, args.voltageMicroV);
-    logger.AddTaggedData(FIELD_BATTERY_CURRENT_UA, args.currentMicroA);
-    logger.AddTaggedData(FIELD_BATTERY_OPEN_CIRCUIT_VOLTAGE_UV, args.openCircuitVoltageMicroV);
-    logger.AddTaggedData(FIELD_BATTERY_RESISTANCE_UOHMS, args.resistanceMicroOhm);
-    logger.AddTaggedData(FIELD_END_BATTERY_PERCENT, args.levelPercent);
+    logIntAction(ACTION_BATTERY_HEALTH,
+                 FIELD_BATTERY_HEALTH_SNAPSHOT_TYPE, (int32_t)args.type,
+                 FIELD_BATTERY_TEMPERATURE_DECI_C, args.temperatureDeciC,
+                 FIELD_BATTERY_VOLTAGE_UV, args.voltageMicroV,
+                 FIELD_BATTERY_CURRENT_UA, args.currentMicroA,
+                 FIELD_BATTERY_OPEN_CIRCUIT_VOLTAGE_UV, args.openCircuitVoltageMicroV,
+                 FIELD_BATTERY_RESISTANCE_UOHMS, args.resistanceMicroOhm,
+                 FIELD_END_BATTERY_PERCENT, args.levelPercent);
+    return Void();
+}
+
+Return<void> PixelStats::reportBatteryCausedShutdown(int32_t voltageMicroV) {
+    // Ratelimit to max 5 per 24hrs
+    if (rateLimit(android::metricslogger::ACTION_BATTERY_CAUSED_SHUTDOWN, 5))
+        return Void();
+    logIntAction(ACTION_BATTERY_CAUSED_SHUTDOWN, FIELD_BATTERY_VOLTAGE_UV, voltageMicroV);
     return Void();
 }
 
