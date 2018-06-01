@@ -55,6 +55,7 @@ struct PixelStats : public IPixelStats {
     Return<void> reportChargeCycles(const hidl_string& buckets) override;
     Return<void> reportBatteryHealthSnapshot(const BatteryHealthSnapshotArgs& args) override;
     Return<void> reportSlowIo(IoOperation operation, int32_t count) override;
+    Return<void> reportBatteryCausedShutdown(int32_t voltageMicroV) override;
 
   private:
     // At most 150 events per day by default.
