@@ -7,9 +7,9 @@ cc_binary {
         "libbase",
         "libhidlbase",
         "libhidltransport",
-        "libmetricslogger",
         "libutils",
         "hardware.google.pixelstats@1.0",
     ],
+    static_libs: ["libmetricslogger_static", ],
 }
 
