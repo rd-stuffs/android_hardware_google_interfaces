@@ -16,6 +16,9 @@ aidl_interface {
         java: {
             platform_apis: true,
         },
+        cpp: {
+            enabled: true,
+        },
     },
     versions: ["1"],
 }
